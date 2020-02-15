@@ -10,3 +10,7 @@
   $ tar xvf images.tar
   $ rm images.tar
   ```
+  
+## Results
+- ### DCGAN
+  ![dcgan](https://user-images.githubusercontent.com/37681936/74590209-cbcbf000-504f-11ea-941f-e92fadc54417.png)
