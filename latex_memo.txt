@@ -1,0 +1,2 @@
+- gp
+E_{\hat{x}\sim \mathbb{P}_{\hat{x}}}[(\parallel \bigtriangledown_{\hat{x}}D(\hat{x})  \parallel_{2}-1)^{2}]
