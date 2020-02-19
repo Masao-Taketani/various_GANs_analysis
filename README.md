@@ -13,6 +13,10 @@
   
 ## Results
 - ### DCGAN
-  ![dcgan](https://user-images.githubusercontent.com/37681936/74590209-cbcbf000-504f-11ea-941f-e92fadc54417.png)
+  <div align="center">
+  <img src="https://user-images.githubusercontent.com/37681936/74590209-cbcbf000-504f-11ea-941f-e92fadc54417.png" alt="DCGAN Result">
+  </div>
 - ### WGAN
-  ![wgan](https://user-images.githubusercontent.com/37681936/74636528-88869400-51ab-11ea-983a-146934353f8b.png)
+  <div align="center">
+  <img src="https://user-images.githubusercontent.com/37681936/74636528-88869400-51ab-11ea-983a-146934353f8b.png" alt="WGAN Result">
+  </div>
