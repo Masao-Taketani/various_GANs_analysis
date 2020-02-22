@@ -20,3 +20,7 @@
   <div align="center">
   <img src="https://user-images.githubusercontent.com/37681936/74636528-88869400-51ab-11ea-983a-146934353f8b.png" alt="WGAN Result">
   </div>
+- ### WGAN-GP
+  <div align="center">
+  <img src="https://user-images.githubusercontent.com/37681936/75090485-ad617980-55a6-11ea-88e3-3639ab2bc1e4.png" alt="WGAN Result">
+  </div>
