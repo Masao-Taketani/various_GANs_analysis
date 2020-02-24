@@ -14,7 +14,7 @@
 ## Results
 - ### DCGAN
   <div align="center">
-  <img src="https://user-images.githubusercontent.com/37681936/74590209-cbcbf000-504f-11ea-941f-e92fadc54417.png" alt="DCGAN Result">
+  <img src="https://user-images.githubusercontent.com/37681936/75147367-7a52ed80-5740-11ea-88f6-445813b33b88.png" alt="DCGAN Result">
   </div>
 - ### WGAN
   <div align="center">
