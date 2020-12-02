@@ -1,5 +1,11 @@
 # Various GANs Analysis
 
+:warning:As for training any GAN, please pay attention to the followings to stablize the training! :warning:
+- Check that neither model has "won". If either the generator-gan-loss or the discriminator-loss gets very low, it's an indicator that one model is dominating the other, and you are not successfully training the combined model.
+- The value log(2) = 0.69 is a good reference point for these losses, as it indicates a perplexity of 2: That the discriminator is on average equally uncertain about the two options.
+- For the discriminator loss, a value below 0.69 means the discriminator is doing better than random on the combined set of real+generated images.
+- For the generator-gan-loss, a value below 0.69 means the generator is doing better than random at foolding the descriminator.
+
 ## Datasets Used for each Model
 - ### For DCGAN, WGAN, WGAN-GP
   [Stanford Dogs Dataset](http://vision.stanford.edu/aditya86/ImageNetDogs/)<br>
@@ -24,3 +30,6 @@
   <div align="center">
   <img src="https://user-images.githubusercontent.com/37681936/75090485-ad617980-55a6-11ea-88e3-3639ab2bc1e4.png" alt="WGAN Result">
   </div>
+
+- ### For Pix2Pix
+  [pix2pix datasets](https://people.eecs.berkeley.edu/~tinghuiz/projects/pix2pix/datasets/)
