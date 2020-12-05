@@ -33,3 +33,7 @@
 
 - ### For Pix2Pix
   [pix2pix datasets](https://people.eecs.berkeley.edu/~tinghuiz/projects/pix2pix/datasets/)
+  
+## References
+- [Image-to-Image Translation with Conditional Adversarial Networks](https://arxiv.org/abs/1611.07004)
+- [Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks](https://arxiv.org/abs/1703.10593)
