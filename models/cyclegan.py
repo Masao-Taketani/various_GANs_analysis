@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, LeakyReLU\
-    Conv2DTranspose, Dropout
+    Conv2DTranspose, Dropout, Input, concatenate, ZeroPadding2D
 
 
 def InstanceNormalization(Layer):
@@ -66,12 +66,7 @@ def upsample(filters, size, norm_type="batchnorm", apply_dropout=False):
                                kernel_initializer=initializer,
                                use_bias=False))
 
-    if norm_type.lower() == "batchnorm":
-        result.add(BatchNormalization())
-    elif norm_type.lower() == "instancenorm":
-        result.add(InstanceNormalization())
-    else:
-        raise ValueError("arg `apply_nrom` has to be either batchnorm or instancenorm")
+    
 
     if apply_dropout:
         result.add(Dropout(0.5))
@@ -81,4 +76,43 @@ def upsample(filters, size, norm_type="batchnorm", apply_dropout=False):
      return result
 
 
-def generator_resnet(img, options, )
+def discriminator(norm_type="batchnorm", target=True):
+    # PatchGAN discriminator is used
+
+    initializer = tf.random_normal_initializer(0., 0.02)
+
+    inp = Input(shape=[None, None, 3], name="disc_input_image")
+    x = inp
+
+    if target:
+        tar = Input(shape=[None, None, 3], name="target_image")
+        x = concatenate([inp, tar]) # (bs, 256, 256, channels * 2)
+    
+    down1 = downsample(64, 4, norm_type, False)(x) # (bs, 128, 128, 64)
+    down2 = downsample(128, 4, norm_type)(down1) # (bs, 64, 64, 128)
+    down3 = downsample(256, 4, norm_type)(down2) # (bs, 32, 32, 256)
+
+    zero_pad1 = ZeroPadding2D()(down3) # (bs, 34, 34, 256)
+    conv = Conv2D(512,
+                  4,
+                  strides=1,
+                  kernel_initializer=initializer,
+                  use_bias=False)(zero_pad1) # (bs, 31, 31, 512)
+
+    if norm_type.lower() == "batchnorm":
+        
+
+def check_norm_type(norm_type, x):
+    if norm_type.lower() == "batchnorm":
+        
+    elif norm_type.lower() == "instancenorm":
+        
+    else:
+        raise ValueError("arg `apply_nrom` has to be either batchnorm "
+                            "or instancenorm")
+
+    return 
+
+
+def generator_resnet(img, options, name="generator"):
+    
