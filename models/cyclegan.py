@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import Sequential
+from tensorflow.keras import Model
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, LeakyReLU\
     Conv2DTranspose, Dropout, Input, concatenate, ZeroPadding2D
 
@@ -67,7 +68,6 @@ def upsample(filters, size, norm_type="batchnorm", apply_dropout=False):
                                use_bias=False))
 
     
-
     if apply_dropout:
         result.add(Dropout(0.5))
 
@@ -78,11 +78,12 @@ def upsample(filters, size, norm_type="batchnorm", apply_dropout=False):
 
 def discriminator(norm_type="batchnorm", target=True):
     # PatchGAN discriminator is used
+    # target: whether target image is an input or not
 
     initializer = tf.random_normal_initializer(0., 0.02)
 
     inp = Input(shape=[None, None, 3], name="disc_input_image")
-    x = inp
+    x = inp # (bs, 256, 256, channels)
 
     if target:
         tar = Input(shape=[None, None, 3], name="target_image")
@@ -99,19 +100,31 @@ def discriminator(norm_type="batchnorm", target=True):
                   kernel_initializer=initializer,
                   use_bias=False)(zero_pad1) # (bs, 31, 31, 512)
 
-    if norm_type.lower() == "batchnorm":
-        
+    norm1 = check_norm_type(norm_type, conv)
+    leaky_relu = LeakyReLU()(norm1)
+    zero_pad2 = ZeroPadding2D()(leaky_relu) # (bs, 33, 33, 512)
+    last = Conv2D(1,
+                  4,
+                  strides=1,
+                  kernel_initializer=initializer)(zero_pad2) # (bs, 30, 30, 1)
+
+    if target:
+        return Model(inputs=[inp, tar], outputs=last)
+    else:
+        return Model(inputs=inp, outputs=last)
+
+
 
 def check_norm_type(norm_type, x):
     if norm_type.lower() == "batchnorm":
-        
+        result = BatchNormalization()(x)
     elif norm_type.lower() == "instancenorm":
-        
+        result = InstanceNormalization()(x)
     else:
         raise ValueError("arg `apply_nrom` has to be either batchnorm "
                             "or instancenorm")
 
-    return 
+    return result
 
 
 def generator_resnet(img, options, name="generator"):
