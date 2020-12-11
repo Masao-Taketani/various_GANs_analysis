@@ -29,6 +29,31 @@ def InstanceNormalization(Layer):
         return self.scale * normalized * self.offset
 
 
+def Downsample(Layer):
+    # Conv2D -> BatchNorm(or InstanceNorm) -> LeakyReLU
+    def __init__(self, 
+                 filters, 
+                 size, 
+                 norm_type="batchnorm", 
+                 apply_norm=True, 
+                 name="downsample", 
+                 **kwargs):
+
+        Super(Downsample, self).__init__(name=name, **kwargs)
+        self.norm_type = norm_type
+        self.apply_norm = apply_norm
+        self.conv2d = Conv2D(filters,
+                             size,
+                             strides=2,
+                             padding="same",
+                             kernel_initializer=initializer,
+                             use_bias=False))
+
+    def call(self, inputs):
+        x = self.conv2d(inputs)
+        check_norm_type(self.norm_type, x)
+
+"""
 def downsample(filters, size, norm_type="batchnorm", apply_norm=True):
     # Conv2D -> BatchNorm(or InstanceNorm) -> LeakyReLU
 
@@ -112,7 +137,7 @@ def discriminator(norm_type="batchnorm", target=True):
         return Model(inputs=[inp, tar], outputs=last)
     else:
         return Model(inputs=inp, outputs=last)
-
+"""
 
 
 def check_norm_type(norm_type, x):
