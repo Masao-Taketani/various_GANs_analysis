@@ -29,7 +29,7 @@ def InstanceNormalization(Layer):
         return self.scale * normalized * self.offset
 
 
-def Downsample(Layer):
+class Downsample(Layer):
     # Conv2D -> BatchNorm(or InstanceNorm) -> LeakyReLU
     def __init__(self, 
                  filters, 
@@ -39,7 +39,8 @@ def Downsample(Layer):
                  name="downsample", 
                  **kwargs):
 
-        Super(Downsample, self).__init__(name=name, **kwargs)
+        super(Downsample, self).__init__(name=name, **kwargs)
+        initializer = tf.random_normal_initializer(0., 0.02)
         self.norm_type = norm_type
         self.apply_norm = apply_norm
         self.conv2d = Conv2D(filters,
@@ -47,11 +48,46 @@ def Downsample(Layer):
                              strides=2,
                              padding="same",
                              kernel_initializer=initializer,
-                             use_bias=False))
+                             use_bias=False)
 
     def call(self, inputs):
         x = self.conv2d(inputs)
-        check_norm_type(self.norm_type, x)
+        result = check_norm_type(self.norm_type, x)
+
+        return result
+
+
+class Upsample(Layer):
+    # Conv2DTranspose -> BatchNorm(or InstanceNorm) -> Dropout -> ReLU
+    def __init__(self, 
+                 filters, 
+                 size, 
+                 norm_type="batchnorm",
+                 apply_dropout=False, 
+                 name="upsample", 
+                 **kwargs):
+
+        super(Upsample, self).__init__(name=name, **kwargs)
+        initializer = tf.random_normal_initializer(0., 0.02)
+        self.norm_type = norm_type
+        self.apply_dropout = apply_dropout
+        self.conv2dtranspose = Conv2DTranspose(filters,
+                                               size,
+                                               strides=2,
+                                               padding="same",
+                                               kernel_initializer=initializer,
+                                               use_bias=False)
+        self.dropout = Dropout(0.5)
+
+    def call(self, inputs):
+        x = self.conv2dtranspose(inputs)
+        result = check_norm_type(self.norm_type, x)
+        if self.apply_dropout:
+            result = self.dropout(result)
+
+        return result
+
+
 
 """
 def downsample(filters, size, norm_type="batchnorm", apply_norm=True):
