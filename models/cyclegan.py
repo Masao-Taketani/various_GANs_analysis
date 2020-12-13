@@ -2,10 +2,16 @@ import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, LeakyReLU\
-    Conv2DTranspose, Dropout, Input, concatenate, ZeroPadding2D
+    Conv2DTranspose, Dropout, concatenate, ZeroPadding2D
 
 
 def InstanceNormalization(Layer):
+    """
+    Instance Normalization Layer (https://arxiv.org/abs/1607.08022).
+
+    Args:
+        epsilon: a small positive decimal number to avoid dividing by 0
+    """
 
     def __init__(self, epsilon=1e-5):
         super(InstanceNormalization, self).__init__()
@@ -30,19 +36,31 @@ def InstanceNormalization(Layer):
 
 
 class Downsample(Layer):
-    # Conv2D -> BatchNorm(or InstanceNorm) -> LeakyReLU
+    """
+     Conv2D -> BatchNorm(or InstanceNorm) -> LeakyReLU
+
+     Args:
+        filters: number of filters
+           size: filter size
+      norm_type: normalization type. Either "batchnorm", "instancenorm" or None
+           name: name of the layer
+
+    Return:
+        Downsample functional model
+    """
+
     def __init__(self, 
                  filters, 
                  size, 
                  norm_type="batchnorm", 
-                 apply_norm=True, 
                  name="downsample", 
                  **kwargs):
 
         super(Downsample, self).__init__(name=name, **kwargs)
         initializer = tf.random_normal_initializer(0., 0.02)
         self.norm_type = norm_type
-        self.apply_norm = apply_norm
+        if self.norm_type:
+            self.norm_layer = get_norm_layer(norm_type)
         self.conv2d = Conv2D(filters,
                              size,
                              strides=2,
@@ -52,13 +70,26 @@ class Downsample(Layer):
 
     def call(self, inputs):
         x = self.conv2d(inputs)
-        result = check_norm_type(self.norm_type, x)
+        if self.norm_type:
+            x = self.norm_layer(x)
 
-        return result
+        return x
 
 
 class Upsample(Layer):
-    # Conv2DTranspose -> BatchNorm(or InstanceNorm) -> Dropout -> ReLU
+    """
+    Conv2DTranspose -> BatchNorm(or InstanceNorm) -> Dropout -> ReLU
+
+     Args:
+        filters: number of filters
+           size: filter size
+      norm_type: normalization type. Either "batchnorm", "instancenorm" or None
+  apply_dropout: If True, apply the dropout layer
+           name: name of the layer
+
+    Return:
+        Upsample functional model
+    """
     def __init__(self, 
                  filters, 
                  size, 
@@ -70,6 +101,8 @@ class Upsample(Layer):
         super(Upsample, self).__init__(name=name, **kwargs)
         initializer = tf.random_normal_initializer(0., 0.02)
         self.norm_type = norm_type
+        if self.norm_type:
+            self.norm_layer = get_norm_layer(norm_type)
         self.apply_dropout = apply_dropout
         self.conv2dtranspose = Conv2DTranspose(filters,
                                                size,
@@ -81,12 +114,54 @@ class Upsample(Layer):
 
     def call(self, inputs):
         x = self.conv2dtranspose(inputs)
-        result = check_norm_type(self.norm_type, x)
+        if self.norm_type:
+            x = self.norm_layer(x)
         if self.apply_dropout:
-            result = self.dropout(result)
+            x = self.dropout(x)
 
-        return result
+        return x
 
+
+class Discriminator(Model):
+    """
+    PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
+
+    Args:
+        norm_type: normalization type. Either "batchnorm", "instancenorm" or None
+           target: Bool, indicating whether the target image is an input or not
+
+    Return:
+        Discriminator model
+    """
+    def __init__(self, norm_type="batchnorm", target=True):
+        initializer = tf.random_normal_initializer(0., 0.02)
+        self.downsample_1 = Downsample(64, 4, norm_type)
+        self.downsample_2 = Downsample(128, 4, norm_type)
+        self.downsample_3 = Downsample(256, 4, norm_type)
+        self.zeropadding2d_1 = ZeroPadding2D()
+        self.conv2d_1 = Conv2D(512, 
+                               4, 
+                               strides=1, 
+                               kernel_initializer=initializer,
+                               use_bias=False)
+        if self.norm_type:
+            self.norm_layer = get_norm_layer(norm_type)
+        self.leaky_relu = LeakyReLU()
+        self.zeropadding2d_2 = ZeroPadding2D()
+        self.conv2d_2 = Conv2D(1, 
+                               4, 
+                               strides=1, 
+                               kernel_initializer=initializer)
+
+
+def get_norm_layer(norm_type):
+    if norm_type.lower() == "batchnorm":
+        return BatchNormalization()
+    elif norm_type.lower() == "instancenorm":
+        return InstanceNormalization()
+    else:
+        raise ValueError("arg `norm_type` has to be either batchnorm "
+                            "or instancenorm")
 
 
 """
@@ -174,18 +249,6 @@ def discriminator(norm_type="batchnorm", target=True):
     else:
         return Model(inputs=inp, outputs=last)
 """
-
-
-def check_norm_type(norm_type, x):
-    if norm_type.lower() == "batchnorm":
-        result = BatchNormalization()(x)
-    elif norm_type.lower() == "instancenorm":
-        result = InstanceNormalization()(x)
-    else:
-        raise ValueError("arg `apply_nrom` has to be either batchnorm "
-                            "or instancenorm")
-
-    return result
 
 
 def generator_resnet(img, options, name="generator"):
