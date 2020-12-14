@@ -133,8 +133,15 @@ class Discriminator(Model):
     Return:
         Discriminator model
     """
-    def __init__(self, norm_type="batchnorm", target=True):
+    def __init__(self, 
+                 norm_type="batchnorm", 
+                 target=True, 
+                 name="discriminator"):
+
+        super(Discriminator, self).__init__(name=name, **kwargs)
         initializer = tf.random_normal_initializer(0., 0.02)
+        self.norm_type = norm_type
+        self.target = target
         self.downsample_1 = Downsample(64, 4, norm_type)
         self.downsample_2 = Downsample(128, 4, norm_type)
         self.downsample_3 = Downsample(256, 4, norm_type)
@@ -152,6 +159,9 @@ class Discriminator(Model):
                                4, 
                                strides=1, 
                                kernel_initializer=initializer)
+
+    def call():
+
 
 
 def get_norm_layer(norm_type):
@@ -251,5 +261,20 @@ def discriminator(norm_type="batchnorm", target=True):
 """
 
 
-def generator_resnet(img, options, name="generator"):
-    
+class ResNetGenerator(Model):
+    """
+    Args:
+    output_channels: number of output channels
+          norm_type: normalization type. Either "batchnorm", "instancenorm" or None
+
+    Return:
+        Generator model
+    """
+    def __init__(self, 
+                 output_channels, 
+                 norm_type="batchnorm", 
+                 name="resnet_generator"):
+
+        super(ResNetGenerator, self).__init__(name=name, **kwargs)
+        self.output_channels = output_channels
+        self.norm_type = norm_type
