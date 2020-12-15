@@ -276,5 +276,22 @@ class ResNetGenerator(Model):
                  name="resnet_generator"):
 
         super(ResNetGenerator, self).__init__(name=name, **kwargs)
+        initializer = tf.random_normal_initializer(0., 0.02)
         self.output_channels = output_channels
         self.norm_type = norm_type
+        self.upsample_1 = Upsample(512, 4, norm_type, apply_dropout=True)
+        self.upsample_2 = Upsample(512, 4, norm_type, apply_dropout=True)
+        self.upsample_3 = Upsample(512, 4, norm_type, apply_dropout=True)
+        self.upsample_4 = Upsample(512, 4. norm_type)
+        self.upsample_5 = Upsample(256, 4, norm_type)
+        self.upsample_6 = Upsample(128, 4, norm_type)
+        self.upsample_7 = Upsample(64, 4, norm_type)
+        self.conv2d_last = Conv2DTranspose(output_channels,
+                                           4,
+                                           strides=2,
+                                           padding="same",
+                                           kernel_initializer=initializer,
+                                           activation="tanh")
+                                
+    def call(self, inputs):
+        
