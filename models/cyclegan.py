@@ -279,6 +279,15 @@ class ResNetGenerator(Model):
         initializer = tf.random_normal_initializer(0., 0.02)
         self.output_channels = output_channels
         self.norm_type = norm_type
+        self.downsample_1 = Downsample(64, 4, norm_type, apply_norm=False)
+        self.downsample_2 = Downsample(128, 4, norm_type)
+        self.downsample_3 = Downsample(256, 4, norm_type)
+        self.downsample_4 = Downsample(512, 4, norm_type)
+        self.downsample_5 = Downsample(512, 4, norm_type)
+        self.downsample_6 = Downsample(512, 4, norm_type)
+        self.downsample_7 = Downsample(512, 4, norm_type)
+        self.downsample_8 = Downsample(512, 4, norm_type)
+
         self.upsample_1 = Upsample(512, 4, norm_type, apply_dropout=True)
         self.upsample_2 = Upsample(512, 4, norm_type, apply_dropout=True)
         self.upsample_3 = Upsample(512, 4, norm_type, apply_dropout=True)
@@ -294,4 +303,14 @@ class ResNetGenerator(Model):
                                            activation="tanh")
                                 
     def call(self, inputs):
-        
+        # input shape: (bs, 256, 256, 3)
+        x = self.downsample_1(inputs) # (bs, 128, 128, 64)
+        x = self.downsample_2(x) # (bs, 64, 64, 128)
+        x = self.downsample_3(x) # (bs, 32, 32, 256)
+        x = self.downsample_4(x) # (bs, 16, 16, 512)
+        x = self.downsample_5(x) # (bs, 8, 8, 512)
+        x = self.downsample_6(x) # (bs, 4, 4, 512)
+        x = self.downsample_7(x) # (bs, 2, 2, 512)
+        x = self.downsample_8(x) # (bs, 1, 1, 512)
+
+        # refer to https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py
