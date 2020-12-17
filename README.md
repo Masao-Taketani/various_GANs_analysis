@@ -17,6 +17,9 @@
   $ rm images.tar
   ```
   
+- ### For Pix2Pix
+  [pix2pix datasets](https://people.eecs.berkeley.edu/~tinghuiz/projects/pix2pix/datasets/)
+  
 ## Results
 - ### DCGAN
   <div align="center">
@@ -30,9 +33,7 @@
   <div align="center">
   <img src="https://user-images.githubusercontent.com/37681936/75090485-ad617980-55a6-11ea-88e3-3639ab2bc1e4.png" alt="WGAN Result">
   </div>
-
-- ### For Pix2Pix
-  [pix2pix datasets](https://people.eecs.berkeley.edu/~tinghuiz/projects/pix2pix/datasets/)
+- ### Pix2Pix
   
 ## References
 - Papers
