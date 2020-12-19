@@ -34,7 +34,7 @@
   <img src="https://user-images.githubusercontent.com/37681936/75090485-ad617980-55a6-11ea-88e3-3639ab2bc1e4.png" alt="WGAN Result">
   </div>
 - ### Pix2Pix
-  
+- ### CycleGAN
 ## References
 - Papers
   - [Image-to-Image Translation with Conditional Adversarial Networks](https://arxiv.org/abs/1611.07004)
@@ -42,3 +42,4 @@
 - Repos
   - [tensorflow/examples](https://github.com/tensorflow/examples)
   - [xhujoy/CycleGAN-tensorflow](https://github.com/xhujoy/CycleGAN-tensorflow)
+  - [junyanz/pytorch-CycleGAN-and-pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix)
