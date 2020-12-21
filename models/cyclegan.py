@@ -361,22 +361,41 @@ class Pix2Pix(Model):
         self.upsample_1 = Upsample(first_filters*2, 
                                    3,
                                    2,
-                                   padding,
+                                   padding="same",
                                    norm_type="intancenorm",
                                    name="upsample_1")
         self.upsample_2 = Upsample(first_filters, 
                                    3,
                                    2,
-                                   padding,
+                                   padding="same",
                                    norm_type="intancenorm",
                                    name="upsample_2")
         self.upsample_3 = Upsample(output_channels, 
-                                   3,
-                                   2,
-                                   padding,
+                                   7,
+                                   1,
+                                   padding="VALID",
                                    norm_type=None,
                                    activation="tanh",
                                    name="upsample_3")
 
     def call(self, inputs):
         # Reflection padding was used to reduce artifacts
+        x = tf.pad(inputs, [[0, 0], [3, 3], [3, 3], [0, 0]], "REFLECT")
+        x = self.downsample_1(x)
+        x = self.downsample_2(x)
+        x = self.downsample_3(x)
+        x = self.resnetblock_1(x)
+        x = self.resnetblock_2(x)
+        x = self.resnetblock_3(x)
+        x = self.resnetblock_4(x)
+        x = self.resnetblock_5(x)
+        x = self.resnetblock_6(x)
+        x = self.resnetblock_7(x)
+        x = self.resnetblock_8(x)
+        x = self.resnetblock_9(x)
+        x = self.upsample_1(x)
+        x = self.upsample_2(x)
+        x = tf.pad(x, [[0, 0], [3, 3], [3, 3], [0, 0]], "REFLECT")
+        result = self.upsample_3(x)
+
+        return result
