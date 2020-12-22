@@ -93,6 +93,8 @@ def get_norm_layer(norm_type):
 def get_activation(activation):
     if activation.lower() == "relu":
         return ReLU()
+    elif activation.lower() = "lrelu":
+        return LeakyReLU(0.2)
     elif activation.lower() == "tanh":
         return tanh
     else:
@@ -120,7 +122,8 @@ class Downsample(Layer):
                  size,
                  strides=1,
                  padding="same",
-                 norm_type="batchnorm", 
+                 norm_type="batchnorm",
+                 activation="lrelu",
                  name="downsample", 
                  **kwargs):
 
@@ -135,13 +138,13 @@ class Downsample(Layer):
                              padding=padding,
                              kernel_initializer=initializer,
                              use_bias=False)
-        self.relu = ReLU()
+        self.activation = get_activation(activation)
 
     def call(self, inputs):
         x = self.conv2d(inputs)
         if self.norm_type:
             x = self.norm_layer(x)
-        x = self.relu(x)
+        x = self.activation(x)
 
         return x
 
@@ -202,6 +205,15 @@ class Discriminator(Model):
     """
     PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
 
+    Referred from CycleGAN paper(https://arxiv.org/abs/1703.10593).
+    For discriminator networks, we use 70 × 70 PatchGAN [22]. Let Ck denote a
+    4 × 4 Convolution-InstanceNorm-LeakyReLU layer with k
+    filters and stride 2. After the last layer, we apply a convolution to produce 
+    a 1-dimensional output. We do not use
+    InstanceNorm for the first C64 layer. We use leaky ReLUs
+    with a slope of 0.2. The discriminator architecture is:
+    C64-C128-C256-C512
+
     Args:
         norm_type: normalization type. Either "batchnorm", "instancenorm" or None
            target: Bool, indicating whether the target image is an input or not
@@ -209,7 +221,9 @@ class Discriminator(Model):
     Return:
         Discriminator model
     """
-    def __init__(self, 
+    def __init__(self,
+                 first_filters,
+                 size,
                  norm_type="batchnorm", 
                  target=True, 
                  name="discriminator"):
@@ -218,9 +232,27 @@ class Discriminator(Model):
         initializer = tf.random_normal_initializer(0., 0.02)
         self.norm_type = norm_type
         self.target = target
-        self.downsample_1 = Downsample(64, 4, norm_type)
-        self.downsample_2 = Downsample(128, 4, norm_type)
-        self.downsample_3 = Downsample(256, 4, norm_type)
+        self.downsample_1 = Downsample(first_filters, 
+                                       size,
+                                       strides=1,
+                                       padding="same",
+                                       norm_type="instancenorm",
+                                       activation="lrelu",
+                                       name="downsample_1")
+        self.downsample_2 = Downsample(first_filters * 2, 
+                                       size,
+                                       strides=1,
+                                       padding="same",
+                                       norm_type="instancenorm",
+                                       activation="lrelu",
+                                       name="downsample_2")
+        self.downsample_3 = Downsample(first_filters * 4, 
+                                       size,
+                                       strides=1,
+                                       padding="same",
+                                       norm_type="instancenorm",
+                                       activation="lrelu",
+                                       name="downsample_3")
         self.zeropadding2d_1 = ZeroPadding2D()
         self.conv2d_1 = Conv2D(512, 
                                4, 
