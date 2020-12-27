@@ -206,7 +206,7 @@ class Discriminator(Model):
     PatchGan discriminator model (https://arxiv.org/abs/1611.07004).
 
     Referred from CycleGAN paper(https://arxiv.org/abs/1703.10593).
-    For discriminator networks, we use 70 × 70 PatchGAN [22]. Let Ck denote a
+    For discriminator networks, we use 70 × 70 PatchGAN. Let Ck denote a
     4 × 4 Convolution-InstanceNorm-LeakyReLU layer with k
     filters and stride 2. After the last layer, we apply a convolution to produce 
     a 1-dimensional output. We do not use
@@ -222,9 +222,9 @@ class Discriminator(Model):
         Discriminator model
     """
     def __init__(self,
-                 first_filters,
-                 size,
-                 norm_type="batchnorm", 
+                 first_filters=64,
+                 size=4,
+                 norm_type="instancenorm", 
                  target=True, 
                  name="discriminator"):
 
@@ -234,41 +234,45 @@ class Discriminator(Model):
         self.target = target
         self.downsample_1 = Downsample(first_filters, 
                                        size,
-                                       strides=1,
+                                       strides=2,
                                        padding="same",
-                                       norm_type="instancenorm",
+                                       norm_type=None,
                                        activation="lrelu",
                                        name="downsample_1")
         self.downsample_2 = Downsample(first_filters * 2, 
                                        size,
-                                       strides=1,
+                                       strides=2,
                                        padding="same",
-                                       norm_type="instancenorm",
+                                       norm_type=norm_type,
                                        activation="lrelu",
                                        name="downsample_2")
         self.downsample_3 = Downsample(first_filters * 4, 
                                        size,
-                                       strides=1,
+                                       strides=2,
                                        padding="same",
-                                       norm_type="instancenorm",
+                                       norm_type=norm_type,
                                        activation="lrelu",
                                        name="downsample_3")
-        self.zeropadding2d_1 = ZeroPadding2D()
-        self.conv2d_1 = Conv2D(512, 
-                               4, 
+        self.conv2d_1 = Conv2D(first_filters * 8, 
+                               size, 
                                strides=1, 
                                kernel_initializer=initializer,
                                use_bias=False)
         if self.norm_type:
             self.norm_layer = get_norm_layer(norm_type)
         self.leaky_relu = LeakyReLU()
-        self.zeropadding2d_2 = ZeroPadding2D()
         self.conv2d_2 = Conv2D(1, 
-                               4, 
+                               size, 
                                strides=1, 
                                kernel_initializer=initializer)
 
-    def call():
+    def call(self, inputs):
+        # inputs: (bs, 256, 256, input channels)
+        x = self.downsample_1(inputs) # (bs, 128, 128, first_filters)
+        x = self.downsample_2(x) # (bs, 64, 64, first_filters * 2)
+        x = self.downsample_3(x) # (bs, 32, 32, first_filters * 4)
+
+
 
 
 
