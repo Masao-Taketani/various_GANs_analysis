@@ -33,7 +33,7 @@ class InstanceNormalization(Layer):
         mean, variance = tf.nn.moments(x, axes=[1, 2], keepdims=True)
         inv = tf.math.rsqrt(variance + self.epsilon)
         normalized = (x - mean) * inv
-        return self.scale * normalized * self.offset
+        return self.scale * normalized + self.offset
 
 
 class ResNetBlock(Layer):
@@ -54,7 +54,7 @@ class ResNetBlock(Layer):
                                strides, 
                                padding=padding,
                                kernel_initializer=initializer,
-                               use_bias=)
+                               use_bias=False)
         self.instance_norm_1 = InstanceNormalization()
         self.ReLU = ReLU()
         self.conv2d_2 = Conv2D(num_filters,
@@ -62,7 +62,7 @@ class ResNetBlock(Layer):
                                strides,
                                padding=padding,
                                kernel_initializer=initializer,
-                               use_bias=)
+                               use_bias=False)
         self.instance_norm_2 = InstanceNormalization()
 
         
@@ -130,14 +130,17 @@ class Downsample(Layer):
         super(Downsample, self).__init__(name=name, **kwargs)
         initializer = tf.random_normal_initializer(0., 0.02)
         self.norm_type = norm_type
+        use_bias = False
         if self.norm_type:
             self.norm_layer = get_norm_layer(norm_type)
+        else:
+            use_bias = True
         self.conv2d = Conv2D(filters,
                              size,
                              strides=strides,
                              padding=padding,
                              kernel_initializer=initializer,
-                             use_bias=False)
+                             use_bias=use_bias)
         self.activation = get_activation(activation)
 
     def call(self, inputs):
@@ -177,15 +180,18 @@ class Upsample(Layer):
         super(Upsample, self).__init__(name=name, **kwargs)
         initializer = tf.random_normal_initializer(0., 0.02)
         self.norm_type = norm_type
+        use_bias = False
         if self.norm_type:
             self.norm_layer = get_norm_layer(norm_type)
+        else:
+            use_bias = True
         self.apply_dropout = apply_dropout
         self.conv2dtranspose = Conv2DTranspose(filters,
                                                size,
                                                strides=strides,
                                                padding=padding,
                                                kernel_initializer=initializer,
-                                               use_bias=False)
+                                               use_bias=use_bias)
         if apply_dropout:
             self.dropout = Dropout(0.5)
         self.activation = get_activation(activation)
@@ -253,27 +259,28 @@ class Discriminator(Model):
                                        norm_type=norm_type,
                                        activation="lrelu",
                                        name="downsample_3")
-        self.conv2d_1 = Conv2D(first_filters * 8, 
-                               size, 
-                               strides=1, 
-                               kernel_initializer=initializer,
-                               use_bias=False)
-        if self.norm_type:
-            self.norm_layer = get_norm_layer(norm_type)
-        self.leaky_relu = LeakyReLU()
-        self.conv2d_2 = Conv2D(1, 
-                               size, 
-                               strides=1, 
-                               kernel_initializer=initializer)
+        self.downsample_4 = Downsample(first_filters * 8, 
+                                       size, 
+                                       strides=1,
+                                       padding="same",
+                                       norm_type=norm_type,
+                                       activation="lrelu",
+                                       name="downsample_4")
+        self.conv2d = Conv2D(1, 
+                             size, 
+                             strides=1,
+                             padding="same",
+                             kernel_initializer=initializer)
 
     def call(self, inputs):
         # inputs: (bs, 256, 256, input channels)
         x = self.downsample_1(inputs) # (bs, 128, 128, first_filters)
         x = self.downsample_2(x) # (bs, 64, 64, first_filters * 2)
         x = self.downsample_3(x) # (bs, 32, 32, first_filters * 4)
+        x = self.downsample_4(x) # (bs, 32, 32, first_filters * 8)
+        x = self.conv2d(x) # (bs, 32, 32, first_filters * 8)
 
-
-
+        return x
 
 
 class Pix2Pix(Model):
@@ -371,20 +378,17 @@ class Pix2Pix(Model):
                                        strides=1,
                                        padding="VALID",
                                        norm_type="instancenorm", 
-                                       name="downsample_1",
-                                       use_bias=)
+                                       name="downsample_1")
         self.downsample_2 = Downsample(first_filters*2, 
                                        3,
                                        strides=2,
                                        norm_type="instancenorm", 
-                                       name="downsample_2",
-                                       use_bias=))
+                                       name="downsample_2")
         self.downsample_3 = Downsample(first_filters*4, 
                                        3,
                                        strides=2,
                                        norm_type="instancenorm", 
-                                       name="downsample_2",
-                                       use_bias=))
+                                       name="downsample_2")
         self.resnetblock_1 = ResNetBlock(first_filters*4, name="resnetblock_1")
         self.resnetblock_2 = ResNetBlock(first_filters*4, name="resnetblock_2")
         self.resnetblock_3 = ResNetBlock(first_filters*4, name="resnetblock_3")
