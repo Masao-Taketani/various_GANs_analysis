@@ -1,9 +1,9 @@
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, LeakyReLU\
+from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, LeakyReLU,\
     ReLU, Conv2DTranspose, Dropout, concatenate, ZeroPadding2D
-from tensorflow.keras.activation import tanh
+from tensorflow.keras.activations import tanh
 
 
 class InstanceNormalization(Layer):
