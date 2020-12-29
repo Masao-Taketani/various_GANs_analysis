@@ -21,7 +21,7 @@ class InstanceNormalization(Layer):
     def build(self, input_shape):
         self.scale = self.add_weight(name="scale",
                                      shape=input_shape[-1:],
-                                     initializer=tf.random_normal_initializer=(1, 0.02),
+                                     initializer=tf.random_normal_initializer(0., 0.02),
                                      trainable=True)
 
         self.offset = self.add_weight(name="offset",
@@ -48,7 +48,7 @@ class ResNetBlock(Layer):
 
         super(ResNetBlock, self).__init__()
         initializer = tf.random_normal_initializer(0., 0.02)
-        self.kernel_size = kernel_size
+        self.size = size
         self.conv2d_1 = Conv2D(filters, 
                                size, 
                                strides, 
@@ -57,8 +57,8 @@ class ResNetBlock(Layer):
                                use_bias=False)
         self.instance_norm_1 = InstanceNormalization()
         self.ReLU = ReLU()
-        self.conv2d_2 = Conv2D(num_filters,
-                               kernel_size,
+        self.conv2d_2 = Conv2D(filters,
+                               size,
                                strides,
                                padding=padding,
                                kernel_initializer=initializer,
@@ -66,8 +66,8 @@ class ResNetBlock(Layer):
         self.instance_norm_2 = InstanceNormalization()
 
         
-    def call(inputs):
-        pad = int((kernel_size - 1) / 2)
+    def call(self, inputs):
+        pad = int((self.size - 1) / 2)
         # Reflection padding was used to reduce artifacts
         x = tf.pad(inputs, [[0, 0], [pad, pad], [pad, pad], [0, 0]], "REFLECT")
         x = self.conv2d_1(x)
@@ -93,7 +93,7 @@ def get_norm_layer(norm_type):
 def get_activation(activation):
     if activation.lower() == "relu":
         return ReLU()
-    elif activation.lower() = "lrelu":
+    elif activation.lower() == "lrelu":
         return LeakyReLU(0.2)
     elif activation.lower() == "tanh":
         return tanh
@@ -232,7 +232,8 @@ class Discriminator(Model):
                  size=4,
                  norm_type="instancenorm", 
                  target=True, 
-                 name="discriminator"):
+                 name="discriminator",
+                 **kwargs):
 
         super(Discriminator, self).__init__(name=name, **kwargs)
         initializer = tf.random_normal_initializer(0., 0.02)
@@ -282,16 +283,16 @@ class Discriminator(Model):
 
         return x
 
-
+"""
 class Pix2Pix(Model):
-    """
-    Args:
-    output_channels: number of output channels
-          norm_type: normalization type. Either "batchnorm", "instancenorm" or None
+    
+    #Args:
+    #output_channels: number of output channels
+    #      norm_type: normalization type. Either "batchnorm", "instancenorm" or None
 
-    Return:
-        Generator model
-    """
+    #Return:
+    #    Generator model
+    
     def __init__(self, 
                  output_channels, 
                  norm_type="batchnorm", 
@@ -336,9 +337,10 @@ class Pix2Pix(Model):
         x = self.downsample_8(x) # (bs, 1, 1, 512)
 
         # refer to https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py
-    
+"""
 
-  class ResNetGenerator(Model):
+
+class ResNetGenerator(Model):
     """
     Referred from CycleGAN paper(https://arxiv.org/abs/1703.10593).
     Let c7s1-k denote a 7×7 Convolution-InstanceNormReLU layer with k filters 
@@ -369,7 +371,8 @@ class Pix2Pix(Model):
                  first_filters,
                  output_channels,
                  norm_type="instancenorm", 
-                 name="resnet_generator"):
+                 name="resnet_generator",
+                 **kwargs):
 
         super(ResNetGenerator, self).__init__(name=name, **kwargs)
         initializer = tf.random_normal_initializer(0., 0.02)
@@ -402,13 +405,13 @@ class Pix2Pix(Model):
                                    3,
                                    2,
                                    padding="same",
-                                   norm_type="intancenorm",
+                                   norm_type="instancenorm",
                                    name="upsample_1")
         self.upsample_2 = Upsample(first_filters, 
                                    3,
                                    2,
                                    padding="same",
-                                   norm_type="intancenorm",
+                                   norm_type="instancenorm",
                                    name="upsample_2")
         self.upsample_3 = Upsample(output_channels, 
                                    7,
