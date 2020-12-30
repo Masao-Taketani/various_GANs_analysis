@@ -6,6 +6,9 @@ from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, LeakyReLU
 from tensorflow.keras.activations import tanh
 
 
+INPUT_SHAPE = (256, 256, 3)
+
+
 class InstanceNormalization(Layer):
     """
     Instance Normalization Layer (https://arxiv.org/abs/1607.08022).
@@ -391,7 +394,7 @@ class ResNetGenerator(Model):
                                        3,
                                        strides=2,
                                        norm_type="instancenorm", 
-                                       name="downsample_2")
+                                       name="downsample_3")
         self.resnetblock_1 = ResNetBlock(first_filters*4, name="resnetblock_1")
         self.resnetblock_2 = ResNetBlock(first_filters*4, name="resnetblock_2")
         self.resnetblock_3 = ResNetBlock(first_filters*4, name="resnetblock_3")
@@ -413,13 +416,12 @@ class ResNetGenerator(Model):
                                    padding="same",
                                    norm_type="instancenorm",
                                    name="upsample_2")
-        self.upsample_3 = Upsample(output_channels, 
-                                   7,
-                                   1,
-                                   padding="VALID",
-                                   norm_type=None,
-                                   activation="tanh",
-                                   name="upsample_3")
+        self.last_conv2d = Conv2D(output_channels, 
+                                  7,
+                                  1,
+                                  padding="VALID",
+                                  activation="tanh",
+                                  name="last_conv2d")
 
     def call(self, inputs):
         # Reflection padding was used to reduce artifacts
@@ -439,6 +441,16 @@ class ResNetGenerator(Model):
         x = self.upsample_1(x)
         x = self.upsample_2(x)
         x = tf.pad(x, [[0, 0], [3, 3], [3, 3], [0, 0]], "REFLECT")
-        result = self.upsample_3(x)
+        result = self.last_conv2d(x)
 
         return result
+
+    """
+    model func is created to check and debug the model architecture.
+    Referred from 
+    https://stackoverflow.com/questions/55235212/model-summary-cant-print-output-shape-while-using-subclass-model
+    """
+    def model(self):
+      from tensorflow.keras.layers import Input
+      x = Input(shape=INPUT_SHAPE)
+      return Model(inputs=[x], outputs=self.call(x))
