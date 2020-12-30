@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, LeakyReLU,\
-    ReLU, Conv2DTranspose, Dropout, concatenate, ZeroPadding2D
+    ReLU, Conv2DTranspose, Dropout, concatenate, ZeroPadding2D, Input
 from tensorflow.keras.activations import tanh
 
 
@@ -46,7 +46,7 @@ class ResNetBlock(Layer):
                  filters, 
                  size=3, 
                  strides=1, 
-                 padding="VALID", 
+                 padding="valid", 
                  name="resnetblock"):
 
         super(ResNetBlock, self).__init__()
@@ -234,14 +234,12 @@ class Discriminator(Model):
                  first_filters=64,
                  size=4,
                  norm_type="instancenorm", 
-                 target=True, 
                  name="discriminator",
                  **kwargs):
 
         super(Discriminator, self).__init__(name=name, **kwargs)
         initializer = tf.random_normal_initializer(0., 0.02)
         self.norm_type = norm_type
-        self.target = target
         self.downsample_1 = Downsample(first_filters, 
                                        size,
                                        strides=2,
@@ -263,17 +261,19 @@ class Discriminator(Model):
                                        norm_type=norm_type,
                                        activation="lrelu",
                                        name="downsample_3")
+        self.zeropadding2d_1 = ZeroPadding2D()
         self.downsample_4 = Downsample(first_filters * 8, 
                                        size, 
                                        strides=1,
-                                       padding="same",
+                                       padding="valid",
                                        norm_type=norm_type,
                                        activation="lrelu",
                                        name="downsample_4")
+        self.zeropadding2d_2 = ZeroPadding2D()
         self.conv2d = Conv2D(1, 
                              size, 
                              strides=1,
-                             padding="same",
+                             padding="valid",
                              kernel_initializer=initializer)
 
     def call(self, inputs):
@@ -281,10 +281,18 @@ class Discriminator(Model):
         x = self.downsample_1(inputs) # (bs, 128, 128, first_filters)
         x = self.downsample_2(x) # (bs, 64, 64, first_filters * 2)
         x = self.downsample_3(x) # (bs, 32, 32, first_filters * 4)
-        x = self.downsample_4(x) # (bs, 32, 32, first_filters * 8)
-        x = self.conv2d(x) # (bs, 32, 32, first_filters * 8)
+        x = self.zeropadding2d_1(x) # (bs, 34, 34, first_filters * 4)
+        x = self.downsample_4(x) # (bs, 31, 31, first_filters * 8)
+        x = self.zeropadding2d_2(x) # (bs, 33, 33, first_filters * 8)
+        x = self.conv2d(x) # (bs, 30, 30, 1)
 
         return x
+
+    def summary(self):
+        x = Input(shape=INPUT_SHAPE)
+        model = Model(inputs=[x], outputs=self.call(x))
+        return model.summary()
+
 
 """
 class Pix2Pix(Model):
@@ -382,7 +390,7 @@ class ResNetGenerator(Model):
         self.downsample_1 = Downsample(first_filters, 
                                        7,
                                        strides=1,
-                                       padding="VALID",
+                                       padding="valid",
                                        norm_type="instancenorm", 
                                        name="downsample_1")
         self.downsample_2 = Downsample(first_filters*2, 
@@ -419,7 +427,7 @@ class ResNetGenerator(Model):
         self.last_conv2d = Conv2D(output_channels, 
                                   7,
                                   1,
-                                  padding="VALID",
+                                  padding="valid",
                                   activation="tanh",
                                   name="last_conv2d")
 
@@ -450,7 +458,7 @@ class ResNetGenerator(Model):
     Referred from 
     https://stackoverflow.com/questions/55235212/model-summary-cant-print-output-shape-while-using-subclass-model
     """
-    def model(self):
-      from tensorflow.keras.layers import Input
-      x = Input(shape=INPUT_SHAPE)
-      return Model(inputs=[x], outputs=self.call(x))
+    def summary(self):
+        x = Input(shape=INPUT_SHAPE)
+        model = Model(inputs=[x], outputs=self.call(x))
+        return model.summary()
