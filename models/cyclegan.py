@@ -1,5 +1,4 @@
 import tensorflow as tf
-from tensorflow.keras import Sequential
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Layer, Conv2D, BatchNormalization, LeakyReLU,\
     ReLU, Conv2DTranspose, Dropout, concatenate, ZeroPadding2D, Input
@@ -379,8 +378,8 @@ class ResNetGenerator(Model):
         Generator model
     """
     def __init__(self,
-                 first_filters,
-                 output_channels,
+                 first_filters=64,
+                 output_channels=3,
                  norm_type="instancenorm", 
                  name="resnet_generator",
                  **kwargs):
