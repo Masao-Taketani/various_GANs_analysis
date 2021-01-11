@@ -34,7 +34,20 @@
   <img src="https://user-images.githubusercontent.com/37681936/75090485-ad617980-55a6-11ea-88e3-3639ab2bc1e4.png" alt="WGAN Result">
   </div>
 - ### Pix2Pix
+  - Architectural labels to photo
+  <div align="center">
+  <img src="https://user-images.githubusercontent.com/37681936/104204936-24c72280-5471-11eb-87a9-6d9196f221b3.png" alt="Architectural labels to photo">
+  </div>
 - ### CycleGAN
+  - horse2zebra
+  <div align="center">
+  <img src="https://user-images.githubusercontent.com/37681936/104203823-ec731480-546f-11eb-81f7-2dec6204fb18.png" alt="horse2zebra">
+  </div>
+  - zebra2horse
+  <div align="center">
+  <img src="https://user-images.githubusercontent.com/37681936/104204253-67d4c600-5470-11eb-9c2d-565cf04f8c9b.png" alt="zebra2horse">
+  </div>
+
 ## References
 - Papers
   - [Image-to-Image Translation with Conditional Adversarial Networks](https://arxiv.org/abs/1611.07004)
