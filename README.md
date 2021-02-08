@@ -45,7 +45,7 @@
   </div>
   - zebra2horse
   <div align="center">
-  <img src="https://user-images.githubusercontent.com/37681936/104204253-67d4c600-5470-11eb-9c2d-565cf04f8c9b.png" alt="zebra2horse">
+  <img src="https://user-images.githubusercontent.com/37681936/107228055-8920d600-6a5f-11eb-948d-a3d67d297343.png" alt="zebra2horse">
   </div>
 
 ## References
